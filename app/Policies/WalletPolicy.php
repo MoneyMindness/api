@@ -14,87 +14,104 @@ class WalletPolicy
     /**
      * Determine whether the user can view any models.
      *
-     * @param \App\Models\User $user
-     * @return \Illuminate\Auth\Access\Response|bool
+     * @param User $user
+     * @return bool|Response
      */
-    public function viewAny(User $user)
+    public function viewAny(User $user): bool | Response
     {
-        return false;
+        return Response::allow();
     }
 
     /**
      * Determine whether the user can view the model.
      *
-     * @param \App\Models\User $user
-     * @param \App\Models\Wallet $wallet
-     * @return \Illuminate\Auth\Access\Response|bool
+     * @param User $user
+     * @param Wallet $wallet
+     * @return Response|bool
      */
-    public function view(User $user, Wallet $wallet)
+    public function view(User $user, Wallet $wallet): Response|bool
     {
-        if (!$user->tokenCan('show:wallet') || $user->tokenCan('full_access'))
-            return Response::deny('Insufficient token permission!');
+        if ($user->tokenCan('full_access') || $user->tokenCan('show:wallet')) {
+            return $wallet->user_id === $user->id
+                ? Response::allow()
+                : Response::deny('This wallet does not belong to the user');
+        }
 
-        return $wallet->user_id === $user->id
-            ? Response::allow()
-            : Response::deny('This wallet does not belong to the user');
+        return Response::deny('Insufficient permission!');
     }
 
     /**
      * Determine whether the user can create models.
      *
-     * @param \App\Models\User $user
-     * @return \Illuminate\Auth\Access\Response|bool
+     * @param User $user
+     * @return Response|bool
      */
-    public function create(User $user)
+    public function create(User $user): Response|bool
     {
-        //
+        if ($user->tokenCan('full_access') || $user->tokenCan('create:wallet')) {
+            return Response::allow();
+        }
+
+        return Response::deny('Insufficient permission!');
     }
 
     /**
      * Determine whether the user can update the model.
      *
-     * @param \App\Models\User $user
-     * @param \App\Models\Wallet $wallet
-     * @return \Illuminate\Auth\Access\Response|bool
+     * @param User $user
+     * @param Wallet $wallet
+     * @return Response|bool
      */
     public function update(User $user, Wallet $wallet)
     {
-        //
+        if ($user->tokenCan('full_access') || $user->tokenCan('update:wallet')) {
+            return $wallet->user_id === $user->id
+                ? Response::allow()
+                : Response::deny('This wallet does not belong to the user');
+        }
+
+        return Response::deny('Insufficient permission!');
     }
 
     /**
      * Determine whether the user can delete the model.
      *
-     * @param \App\Models\User $user
-     * @param \App\Models\Wallet $wallet
-     * @return \Illuminate\Auth\Access\Response|bool
+     * @param User $user
+     * @param Wallet $wallet
+     * @return Response|bool
      */
-    public function delete(User $user, Wallet $wallet)
+    public function delete(User $user, Wallet $wallet): Response|bool
     {
-        //
+        if ($user->tokenCan('full_access') || $user->tokenCan('delete:wallet')) {
+            return $wallet->user_id === $user->id
+                ? Response::allow()
+                : Response::deny('This wallet does not belong to the user');
+        }
+
+        return Response::deny('Insufficient permission!');
     }
 
     /**
      * Determine whether the user can restore the model.
      *
-     * @param \App\Models\User $user
-     * @param \App\Models\Wallet $wallet
-     * @return \Illuminate\Auth\Access\Response|bool
+     * @param User $user
+     * @param Wallet $wallet
+     * @return Response|bool
      */
     public function restore(User $user, Wallet $wallet)
     {
-        //
+        // not needed since it's hard deleted
     }
 
     /**
      * Determine whether the user can permanently delete the model.
      *
-     * @param \App\Models\User $user
-     * @param \App\Models\Wallet $wallet
-     * @return \Illuminate\Auth\Access\Response|bool
+     * @param User $user
+     * @param Wallet $wallet
+     * @return Response|bool
      */
     public function forceDelete(User $user, Wallet $wallet)
     {
-        //
+        // not needed since it's hard deleted
     }
 }

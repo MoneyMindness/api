@@ -8,6 +8,7 @@ use F9Web\ApiResponseHelpers;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Http\Response;
+use Illuminate\Support\Facades\Gate;
 
 class WalletController extends Controller
 {
@@ -16,6 +17,7 @@ class WalletController extends Controller
     /**
      * Display a listing of the resource.
      *
+     * @param Request $request
      * @return JsonResponse
      */
     public function index(Request $request): JsonResponse
@@ -30,15 +32,15 @@ class WalletController extends Controller
      *
      * @return JsonResponse
      */
-    public function create() : JsonResponse
+    public function create(): JsonResponse
     {
-       return $this->respondError("Please use the API Route for creating wallets");
+        return $this->respondError("Please use the API Route for creating wallets");
     }
 
     /**
      * Store a newly created resource in storage.
      *
-     * @param \Illuminate\Http\Request $request
+     * @param Request $request
      * @return JsonResponse
      */
     public function store(Request $request): JsonResponse
@@ -48,10 +50,9 @@ class WalletController extends Controller
             'description' => ['required', 'min:1', 'max:255']
         ]);
 
-        if (
-            $request->user()->tokenCan('create:wallet') ||
-            $request->user()->tokenCan('full_access')) {
+        $gate = Gate::inspect('create', Wallet::class);
 
+        if ($gate->allowed()) {
             $wallet = $request->user()->wallets()->create([
                 'title' => $request->get('title'),
                 'description' => $request->get('description')
@@ -63,28 +64,29 @@ class WalletController extends Controller
             ]);
         }
 
-        return $this->respondError("Server error");
+        return $this->respondForbidden($gate->message());
     }
 
     /**
      * Display the specified resource.
      *
      * @param int $id
+     * @param Request $request
      * @return JsonResponse
      */
     public function show(int $id, Request $request): JsonResponse
     {
         $wallet = Wallet::with('walletItem')->where('id', $id)->first();
 
-        if(!$request->user()->tokenCan('show:wallet') || !$request->user()->tokenCan('full_access'))
-            return $this->respondForbidden("Token is not authorized to do that");
+        $gate = Gate::inspect('view', $wallet);
 
-        if($wallet->user_id == $request->user()->id){
+        if ($gate->allowed()) {
+
             return $this->respondWithSuccess([
                 'id' => $wallet->id,
                 'title' => $wallet->title,
                 'description' => $wallet->description,
-                'items' => $wallet->walletItem->map(function ($item){
+                'items' => $wallet->walletItem->map(function ($item) {
                     return [
                         'id' => $item->id,
                         'title' => $item->title,
@@ -92,9 +94,10 @@ class WalletController extends Controller
                     ];
                 })
             ]);
-        }else{
-            return $this->respondForbidden("This wallet is not yours");
+
         }
+
+        return $this->respondForbidden($gate->message());
     }
 
     /**
@@ -103,7 +106,7 @@ class WalletController extends Controller
      * @param int $id
      * @return JsonResponse
      */
-    public function edit($id): JsonResponse
+    public function edit(int $id): JsonResponse
     {
         return $this->respondError("Please use the API Route for editing wallets");
     }
@@ -111,33 +114,41 @@ class WalletController extends Controller
     /**
      * Update the specified resource in storage.
      *
-     * @param \Illuminate\Http\Request $request
+     * @param Request $request
      * @param int $id
      * @return JsonResponse
      */
-    public function update(Request $request, $id): JsonResponse
+    public function update(Request $request, int $id): JsonResponse
     {
         $wallet = Wallet::find($id);
 
-        if(!$request->user()->tokenCan('update:wallet') || !$request->user()->tokenCan('full_access'))
-            return $this->respondForbidden("Token is not authorized to do that");
+        $gate = Gate::authorize('update', $wallet);
 
-        if($wallet->user_id === $request->user()->id){
-           $wallet->update(array_filter($request->all()));
-           return $this->respondWithSuccess("Wallet updated successfully!");
-        }else{
-            return $this->respondForbidden("Not your wallet ID!");
+        if ($gate->allowed()) {
+            $wallet->update(array_filter($request->all()));
+            return $this->respondWithSuccess("Wallet updated successfully!");
         }
+
+        return $this->respondForbidden($gate->message());
     }
 
     /**
      * Remove the specified resource from storage.
      *
      * @param int $id
-     * @return Response
+     * @return JsonResponse
      */
-    public function destroy($id)
+    public function destroy(int $id): JsonResponse
     {
-        //
+        $wallet = Wallet::find($id);
+
+        $gate = Gate::authorize('delete', $wallet);
+
+        if ($gate->allowed()) {
+            $wallet->delete();
+            return $this->respondWithSuccess("Wallet deleted successfully!");
+        }
+
+        return $this->respondForbidden($gate->message());
     }
 }
