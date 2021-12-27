@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\API;
 
 use App\Http\Controllers\Controller;
+use App\Http\Resources\WalletResource;
 use App\Models\Wallet;
 use F9Web\ApiResponseHelpers;
 use Illuminate\Http\JsonResponse;
@@ -22,9 +23,11 @@ class WalletController extends Controller
      */
     public function index(Request $request): JsonResponse
     {
-        return $this->respondWithSuccess(
-            $request->user()->wallets()->get(['id', 'title', 'description'])
-        );
+        return $this->respondWithSuccess([
+            "message" => "User wallets successfully retrieved",
+            "data" => WalletResource::collection($request->user()->wallets)
+        ]);
+
     }
 
     /**
@@ -53,6 +56,7 @@ class WalletController extends Controller
         $gate = Gate::inspect('create', Wallet::class);
 
         if ($gate->allowed()) {
+
             $wallet = $request->user()->wallets()->create([
                 'title' => $request->get('title'),
                 'description' => $request->get('description')
@@ -60,7 +64,7 @@ class WalletController extends Controller
 
             return $this->respondWithSuccess([
                 "message" => "Wallet created",
-                "data" => $wallet
+                "data" => (new WalletResource($wallet))
             ]);
         }
 
@@ -83,16 +87,8 @@ class WalletController extends Controller
         if ($gate->allowed()) {
 
             return $this->respondWithSuccess([
-                'id' => $wallet->id,
-                'title' => $wallet->title,
-                'description' => $wallet->description,
-                'items' => $wallet->walletItem->map(function ($item) {
-                    return [
-                        'id' => $item->id,
-                        'title' => $item->title,
-                        'description' => $item->description
-                    ];
-                })
+                "message" => "Wallet information successfully retrieved",
+                "data" => (new WalletResource($wallet))
             ]);
 
         }
@@ -126,7 +122,7 @@ class WalletController extends Controller
 
         if ($gate->allowed()) {
             $wallet->update(array_filter($request->all()));
-            return $this->respondWithSuccess("Wallet updated successfully!");
+            return $this->respondOk("Wallet updated successfully!");
         }
 
         return $this->respondForbidden($gate->message());
@@ -146,7 +142,7 @@ class WalletController extends Controller
 
         if ($gate->allowed()) {
             $wallet->delete();
-            return $this->respondWithSuccess("Wallet deleted successfully!");
+            return $this->respondOk("Wallet deleted successfully!");
         }
 
         return $this->respondForbidden($gate->message());
