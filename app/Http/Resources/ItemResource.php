@@ -17,9 +17,9 @@ class ItemResource extends JsonResource
         return [
             'id' => $this->id,
             'title' => $this->title,
-            'created_at' => $this->created_at,
-            'updated_at' => $this->updated_at->diffForHumans(),
-            'sum_total' => $this->total_sum
+            'sum_total' => $this->total_sum,
+            'created_at' => (int)$this->created_at->shiftTimezone('utc')->format('U'),
+            'updated_at' => $this->updated_at->shiftTimezone('utc')->diffForHumans(),
         ];
     }
 }

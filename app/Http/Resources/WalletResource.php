@@ -22,8 +22,8 @@ class WalletResource extends JsonResource
             'id' => $this->id,
             'title' => $this->title,
             'description' => $this->description,
-            'created_at' => $this->created_at,
-            'updated_at' => $this->updated_at->diffForHumans(),
+            'created_at' => (int)$this->created_at->shiftTimezone('utc')->format('U'),
+            'updated_at' => $this->updated_at->shiftTimezone('utc')->diffForHumans(),
             'items' => ItemResource::collection($this->whenLoaded('walletItem'))
         ];
     }
