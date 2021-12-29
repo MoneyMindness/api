@@ -16,6 +16,7 @@ class CreateBudgetsTable extends Migration
         Schema::create('budgets', function (Blueprint $table) {
             $table->id();
             $table->foreignId('item_id')->references('id')->on('items')->cascadeOnDelete();
+            $table->foreignId('user_id')->references('id')->on('users')->cascadeOnDelete();
             $table->string('title', 50);
             $table->string('description', 100);
             $table->double('amount');

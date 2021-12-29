@@ -15,9 +15,10 @@ class BudgetSeeder extends Seeder
      */
     public function run()
     {
-        foreach (Item::all() as $item){
-            Budget::factory(20)->create([
-               'item_id' => $item
+        foreach (Item::all() as $item) {
+            Budget::factory(10)->create([
+                'item_id' => $item,
+                'user_id' => $item->user_id
             ]);
         }
     }

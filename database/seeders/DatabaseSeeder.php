@@ -18,7 +18,6 @@ class DatabaseSeeder extends Seeder
             WalletSeeder::class,
             ItemSeeder::class,
             BudgetSeeder::class,
-            ItemSeeder::class,
         ]);
     }
 }

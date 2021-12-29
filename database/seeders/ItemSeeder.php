@@ -16,8 +16,9 @@ class ItemSeeder extends Seeder
     public function run()
     {
         foreach (Wallet::all() as $wallet){
-            Item::factory(2)->create([
-                'wallet_id' => $wallet
+            Item::factory(1)->create([
+                'wallet_id' => $wallet,
+                'user_id' => $wallet->user_id
             ]);
         }
     }
