@@ -23,10 +23,7 @@ class WalletController extends Controller
      */
     public function index(Request $request): JsonResponse
     {
-        return $this->respondWithSuccess([
-            "message" => "User wallets successfully retrieved",
-            "data" => WalletResource::collection($request->user()->wallets)
-        ]);
+        return $this->respondWithSuccess(WalletResource::collection($request->user()->wallets));
 
     }
 
@@ -37,7 +34,7 @@ class WalletController extends Controller
      */
     public function create(): JsonResponse
     {
-        return $this->respondError("Please use the API Route for creating wallets");
+        return $this->respondError("Please use the POST API Route for creating wallets");
     }
 
     /**
@@ -62,10 +59,7 @@ class WalletController extends Controller
                 'description' => $request->get('description')
             ]);
 
-            return $this->respondWithSuccess([
-                "message" => "Wallet created",
-                "data" => (new WalletResource($wallet))
-            ]);
+            return $this->respondWithSuccess((new WalletResource($wallet)));
         }
 
         return $this->respondForbidden($gate->message());
@@ -86,10 +80,7 @@ class WalletController extends Controller
 
         if ($gate->allowed()) {
 
-            return $this->respondWithSuccess([
-                "message" => "Wallet information successfully retrieved",
-                "data" => (new WalletResource($wallet))
-            ]);
+            return $this->respondWithSuccess((new WalletResource($wallet)));
 
         }
 
@@ -104,6 +95,7 @@ class WalletController extends Controller
      */
     public function edit(int $id): JsonResponse
     {
+
         return $this->respondError("Please use the API Route for editing wallets");
     }
 

@@ -2,26 +2,25 @@
 
 namespace App\Http\Resources;
 
+use Illuminate\Contracts\Support\Arrayable;
 use Illuminate\Http\Resources\Json\JsonResource;
 
-class ItemResource extends JsonResource
+class BudgetResource extends JsonResource
 {
     /**
      * Transform the resource into an array.
      *
      * @param  \Illuminate\Http\Request  $request
-     * @return array|\Illuminate\Contracts\Support\Arrayable|\JsonSerializable
+     * @return array|Arrayable|\JsonSerializable
      */
-    public function toArray($request)
+    public function toArray($request): array|\JsonSerializable|Arrayable
     {
         return [
-            'id' => $this->id,
             'title' => $this->title,
             'description' => $this->description,
-            'sum_total' => $this->total_sum,
+            'amount' => $this->amount,
             'created_at' => (int)$this->created_at->shiftTimezone('utc')->format('U'),
             'updated_at' => $this->updated_at->shiftTimezone('utc')->diffForHumans(),
-            'budgets' => BudgetResource::collection($this->whenLoaded('budgets'))
         ];
     }
 }
