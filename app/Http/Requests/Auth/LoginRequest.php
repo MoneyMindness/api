@@ -2,6 +2,7 @@
 
 namespace App\Http\Requests\Auth;
 
+use App\Models\User;
 use Illuminate\Auth\Events\Lockout;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Support\Facades\Auth;
@@ -16,7 +17,7 @@ class LoginRequest extends FormRequest
      *
      * @return bool
      */
-    public function authorize()
+    public function authorize(): bool
     {
         return true;
     }
@@ -37,7 +38,7 @@ class LoginRequest extends FormRequest
     /**
      * Attempt to authenticate the request's credentials.
      *
-     * @return void
+     * @return array
      *
      * @throws \Illuminate\Validation\ValidationException
      */
@@ -54,6 +55,14 @@ class LoginRequest extends FormRequest
         }
 
         RateLimiter::clear($this->throttleKey());
+
+        $user = User::where('email', $this->only('email'))->firstOrFail();
+        $token = $user->createToken('Access token (Web session)', ['full_access'])->plainTextToken;
+
+        return [
+            'access_token' => $token,
+            'token_type' => 'Bearer',
+        ];
     }
 
     /**

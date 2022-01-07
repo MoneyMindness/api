@@ -10,7 +10,6 @@ use Illuminate\Support\Facades\Route;
 Route::post('app-auth-token', [TokenController::class, 'createToken']);
 
 Route::middleware(['auth:sanctum'])->group(function (){
-
     Route::prefix('user')->group(function (){
         Route::get('', [UserController::class, 'index']);
         Route::get('with-wallets', [UserController::class, 'withWallets']);
@@ -21,3 +20,5 @@ Route::middleware(['auth:sanctum'])->group(function (){
     Route::resource('budget', BudgetController::class);
 
 });
+
+require __DIR__.'/../auth.php';
